@@ -56,9 +56,8 @@ func buildGeneratorTab(myWindow fyne.Window) fyne.CanvasObject {
 	lengthRow := container.NewBorder(nil, nil, lengthLabel, nil, lengthSlider)
 
 	// Output field
-	outputEntry := widget.NewEntry()
+	outputEntry := widget.NewPasswordEntry()
 	outputEntry.SetPlaceHolder("Generated password will appear here...")
-	outputEntry.Disable() // read-only
 
 	// Buttons
 	generateBtn := widget.NewButton("Generate", func() {
@@ -74,9 +73,7 @@ func buildGeneratorTab(myWindow fyne.Window) fyne.CanvasObject {
 			outputEntry.SetText("Error: " + err.Error())
 			return
 		}
-		outputEntry.Enable()
 		outputEntry.SetText(pw)
-		outputEntry.Disable()
 	})
 	generateBtn.Importance = widget.HighImportance
 
