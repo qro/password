@@ -6,6 +6,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+
+	"github.com/qro/password/internal/generator"
 )
 
 func Run() {
@@ -13,7 +15,7 @@ func Run() {
 	myWindow := myApp.NewWindow("github.com/qro/password")
 	myWindow.Resize(fyne.NewSize(520, 480))
 
-	generatorTab := container.NewTabItem("Generator", buildGeneratorTab())
+	generatorTab := container.NewTabItem("Generator", buildGeneratorTab(myWindow))
 	strengthTab := container.NewTabItem("Strength Checker", buildStrengthTab())
 
 	tabs := container.NewAppTabs(generatorTab, strengthTab)
@@ -23,7 +25,7 @@ func Run() {
 	myWindow.ShowAndRun()
 }
 
-func buildGeneratorTab() fyne.CanvasObject {
+func buildGeneratorTab(myWindow fyne.Window) fyne.CanvasObject {
 	// Character set checkboxes
 	uppercaseCheck := widget.NewCheck("Uppercase (A-Z)", nil)
 	uppercaseCheck.SetChecked(true)
@@ -60,12 +62,29 @@ func buildGeneratorTab() fyne.CanvasObject {
 
 	// Buttons
 	generateBtn := widget.NewButton("Generate", func() {
-		// TODO: wire up generator logic
+		opts := generator.Options{
+			Length:  int(lengthSlider.Value),
+			Upper:   uppercaseCheck.Checked,
+			Lower:   lowercaseCheck.Checked,
+			Digits:  numbersCheck.Checked,
+			Symbols: symbolsCheck.Checked,
+		}
+		pw, err := generator.Generate(opts)
+		if err != nil {
+			outputEntry.SetText("Error: " + err.Error())
+			return
+		}
+		outputEntry.Enable()
+		outputEntry.SetText(pw)
+		outputEntry.Disable()
 	})
 	generateBtn.Importance = widget.HighImportance
 
+	// Copy
 	copyBtn := widget.NewButton("Copy", func() {
-		// TODO: wire up clipboard copy
+		if outputEntry.Text != "" && myWindow != nil {
+			myWindow.Clipboard().SetContent(outputEntry.Text)
+		}
 	})
 
 	buttonRow := container.NewHBox(generateBtn, copyBtn, layout.NewSpacer())
