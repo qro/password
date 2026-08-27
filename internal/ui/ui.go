@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -8,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/qro/password/internal/generator"
+	"github.com/qro/password/internal/strength"
 )
 
 func Run() {
@@ -103,12 +106,6 @@ func buildStrengthTab() fyne.CanvasObject {
 	passwordEntry := widget.NewPasswordEntry()
 	passwordEntry.SetPlaceHolder("Password...")
 
-	// Check button
-	checkBtn := widget.NewButton("Check Strength", func() {
-		// TODO: wire up strength checker logic
-	})
-	checkBtn.Importance = widget.HighImportance
-
 	// Results
 	entropyLabel := widget.NewLabel("Entropy: —")
 	ratingLabel := widget.NewLabel("Rating: —")
@@ -116,6 +113,25 @@ func buildStrengthTab() fyne.CanvasObject {
 
 	strengthBar := widget.NewProgressBar()
 	strengthBar.SetValue(0)
+
+	// Check button
+	checkBtn := widget.NewButton("Check Strength", func() {
+		result := strength.Check(passwordEntry.Text)
+		entropyLabel.SetText(fmt.Sprintf("Entropy: %.1f bits", result.Entropy))
+		ratingLabel.SetText("Rating: " + result.Rating)
+		if result.Breached {
+			breachLabel.SetText("Breach Status: Found in breaches!")
+		} else {
+			breachLabel.SetText("Breach Status: Not found")
+		}
+		// Normalise entropy to 0-1 for the progress bar (cap at 128 bits)
+		bar := result.Entropy / 128
+		if bar > 1 {
+			bar = 1
+		}
+		strengthBar.SetValue(bar)
+	})
+	checkBtn.Importance = widget.HighImportance
 
 	resultsCard := widget.NewCard("Results", "", container.NewVBox(
 		entropyLabel,
