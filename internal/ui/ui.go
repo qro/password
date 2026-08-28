@@ -1,6 +1,7 @@
 package ui
 
 import (
+	_ "embed"
 	"fmt"
 
 	"fyne.io/fyne/v2"
@@ -13,9 +14,15 @@ import (
 	"github.com/qro/password/internal/strength"
 )
 
+//go:embed icon.png
+var iconBytes []byte
+
 func Run() {
-	myApp := app.New()
-	myWindow := myApp.NewWindow("github.com/qro/password")
+	myPassword := app.New()
+
+	icon := fyne.NewStaticResource("icon.png", iconBytes)
+	myPassword.SetIcon(icon) 
+	myWindow := myPassword.NewWindow("github.com/qro/password")
 	myWindow.Resize(fyne.NewSize(520, 480))
 
 	generatorTab := container.NewTabItem("Generator", buildGeneratorTab(myWindow))
